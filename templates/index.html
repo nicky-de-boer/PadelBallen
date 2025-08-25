@@ -1,0 +1,106 @@
+{% from "components/table.html" import sortable_table %}
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Padelballen Vergelijker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const element = document.getElementById('merk');
+        const form = document.getElementById('filter-form');
+        const choices = new Choices(element, {
+            removeItemButton: true,
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: 'Selecteer merken',
+        });
+
+        // Submit the form automatically when a choice is selected or removed
+        element.addEventListener('change', () => {
+            form.submit();
+        });
+    });
+</script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<!-- Navbar -->
+<nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <img src="/static/logo.png" alt="Logo" class="h-8 w-auto"/>
+            <h1 class="text-2xl font-bold text-blue-600">Padelballen Vergelijker</h1>
+        </div>
+        <div class="space-x-4 hidden sm:block">
+            <a href="#" class="text-gray-700 hover:text-blue-600 font-medium">Over</a>
+            <a href="#" class="text-gray-700 hover:text-blue-600 font-medium">Contact</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="relative bg-gradient-to-r from-blue-100 to-blue-300 py-12 text-center shadow-md mb-8 flex flex-col items-center justify-center overflow-hidden">
+    <img src="/static/hero.jpeg" alt="Padel Hero" class="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" style="z-index:0;" />
+    <div class="relative z-10 max-w-2xl mx-auto px-4">
+        <h2 class="text-4xl font-extrabold text-blue-700 mb-2 drop-shadow-lg">De scherpste prijzen voor padelballen</h2>
+        <p class="text-lg text-blue-900 mb-4 drop-shadow">Filter, zoek en vind direct de beste deal voor jouw favoriete merk</p>
+        <a href="#filter" class="inline-block bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition">Bekijk aanbod</a>
+    </div>
+</section>
+
+<!-- Main -->
+<main class="max-w-6xl mx-auto px-4 py-8">
+    <section id="filter" class="filter-section mb-8 bg-white rounded-lg shadow-lg p-6">
+        <form method="get" id="filter-form" class="flex flex-col gap-4">
+            <label for="merk" class="block text-sm font-medium text-gray-700">Filter op merken:</label>
+            <select name="merken" id="merk" multiple class="mt-1 block w-full pl-3 pr-10 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                {% for merk in merken %}
+                    <option value="{{ merk }}" {% if merk in geselecteerde_merken %}selected{% endif %}>{{ merk }}</option>
+                {% endfor %}
+            </select>
+            <!-- Store filter icons -->
+            <input type="hidden" name="winkel" id="winkel-input" value="{{ geselecteerde_winkel|default('') }}">
+            <div class="flex justify-center gap-8 mt-4">
+                <button type="button" class="focus:outline-none" onclick="selectStore('Decathlon')">
+                    <img src="/static/decathlon-logo.jpeg" alt="Decathlon" class="h-16 w-16 rounded-full shadow-lg border-2 border-blue-400 hover:border-blue-600 transition object-cover object-center bg-white" />
+                </button>
+                <button type="button" class="focus:outline-none" onclick="selectStore('PadelDiscount')">
+                    <span class="inline-flex items-center justify-center h-16 w-16 rounded-full" style="background-color: #0188cc; border: 2px solid #0188cc; margin-left: 0.1rem;">
+                        <img src="/static/Padeldiscount-logo.jpeg" alt="PadelDiscount" class="h-12 w-12 rounded-full object-contain object-center p-1 bg-transparent" />
+                    </span>
+                </button>
+            </div>
+        </form>
+        <script>
+        function selectStore(store) {
+            document.getElementById('winkel-input').value = store;
+            document.getElementById('filter-form').submit();
+        }
+        </script>
+    </section>
+    <!-- Tabel -->
+    <div class="overflow-x-auto">
+        {{ sortable_table(columns=[
+        {'key': 'img', 'title': ''},
+        {'key': 'merk', 'title': 'Merk'},
+        {'key': 'model', 'title': 'Naam'},
+        {'key': 'prijs', 'title': 'Prijs'},
+        {'key': 'prijs_per_stuk', 'title': 'Prijs/stuk'},
+        {'key': 'winkel', 'title': 'Winkel'},
+        {'key': 'link', 'title': 'Link'}
+    ], rows=padelballen) }}
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="text-center py-6 text-sm text-gray-500">
+    &copy; {{ current_year }} Padelballen Vergelijker
+</footer>
+
+</body>
+</html>

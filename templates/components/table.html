@@ -1,0 +1,111 @@
+{% macro sortable_table(columns, rows) %}
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow-lg rounded-xl border border-gray-200">
+        <thead class="bg-blue-600 text-white">
+        <tr>
+            {% for col in columns %}
+                <th scope="col" class="text-left py-4 px-5 cursor-pointer font-semibold text-base tracking-wide" data-key="{{ col.key }}">
+                    {{ col.title }}
+                    <span class="sort-indicator"></span>
+                </th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+            <tr class="transition hover:bg-blue-50 {% if loop.index is even %}bg-gray-50{% else %}bg-white{% endif %} border-b border-gray-100" onclick="window.location='{{ row['link'] }}'" style="cursor:pointer;">
+                {% for col in columns %}
+                    <td class="py-3 px-5 align-middle text-gray-700">
+                        {% if col.key == 'link' %}
+                            <a href="{{ row[col.key] }}" class="text-blue-600 hover:underline font-medium" target="_blank">Bekijk</a>
+                        {% elif col.key == 'img' %}
+                            <img src="{{ row[col.key] }}" alt="Product Image" class="h-10 w-10 object-contain rounded-full border border-gray-200 shadow-sm">
+                        {% elif col.key == 'prijs' or col.key == 'prijs_per_stuk' %}
+                             {{ "%.2f"|format(row[col.key]) }}
+                        {% elif col.key == 'aantal_per_verpakking' %}
+                            {{ row[col.key] }} stuks
+                        {% else %}
+                            {{ row[col.key] }}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const table = document.querySelector('table');
+    const headers = table.querySelectorAll('th[data-key]');
+    let sortKey = null;
+    let reverse = false;
+
+    function sortTable(key) {
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const idx = Array.from(headers).findIndex(h => h.dataset.key === key);
+
+        rows.sort((a, b) => {
+            const aText = a.children[idx].textContent.trim();
+            const bText = b.children[idx].textContent.trim();
+
+            const aNum = parseFloat(aText.replace(/[^\d.-]/g, ''));
+            const bNum = parseFloat(bText.replace(/[^\d.-]/g, ''));
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return reverse ? bNum - aNum : aNum - bNum;
+            } else {
+                return reverse
+                    ? bText.localeCompare(aText)
+                    : aText.localeCompare(bText);
+            }
+        });
+
+        tbody.innerHTML = '';
+        rows.forEach(r => tbody.appendChild(r));
+        applyStripedEffect(); // Apply striped effect after sorting
+    }
+
+    function applyStripedEffect() {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach((row, index) => {
+            row.classList.remove('bg-gray-100', 'bg-white');
+            row.classList.add(index % 2 === 0 ? 'bg-gray-100' : 'bg-white');
+        });
+    }
+
+    function updateSortIndicator() {
+        headers.forEach(h => {
+            const indicator = h.querySelector('.sort-indicator');
+            if (h.dataset.key === sortKey) {
+                indicator.textContent = reverse ? '↓' : '↑';
+            } else {
+                indicator.textContent = '';
+            }
+        });
+    }
+
+    headers.forEach(h => {
+        const indicator = document.createElement('span');
+        indicator.classList.add('sort-indicator');
+        indicator.style.marginLeft = '8px';
+        h.appendChild(indicator);
+
+        h.addEventListener('click', () => {
+            if (sortKey === h.dataset.key) {
+                reverse = !reverse;
+            } else {
+                sortKey = h.dataset.key;
+                reverse = false;
+            }
+            sortTable(sortKey);
+            updateSortIndicator();
+        });
+    });
+
+    applyStripedEffect(); // Apply striped effect on initial load
+});
+</script>
+{% endmacro %}
